@@ -30,9 +30,27 @@ app.listen(PORT, () => {
     console.log(`Server Glowlist jalan di http://localhost:${PORT}`);
 });
 
-app.get('/produk', (req, res) => {
+app.get('/produk/', (req, res) => {
     const sql = 'SELECT * FROM produk';
+
     db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Gagal mengambil data produk:', err);
+            return res.status(500).json({
+                message: 'Gagal mengambil data produk',
+                error: err.sqlMessage
+            })
+        }
+
+        res.json(results);
+    })
+
+});
+
+app.get('/produk/:id_produk', (req, res) => {
+    const {id_produk} = req.params;
+    const sql = 'SELECT * FROM produk';
+    db.query(sql,[id_produk], (err, results) => {
         if (err) return res.status(500).json({ error: err });
         res.json(results);
     })
@@ -53,6 +71,41 @@ app.post('/produk', (req, res) => {
             message: 'Produk berhasil ditambahkan!',
             id_produk: result.insertId
         })
+    })
+})
+
+app.put('/produk/:id_produk', (req, res) => {
+    const {id_produk} = req.params;
+    const {judul,deskripsi,harga,id_kategori} = req.body;
+
+    if (!judul || !harga || !deskripsi) {
+        return res.status(400).json({ message: 'judul, deskripsi dan harga wajib diisi'});
+    }
+
+    const sql ='UPDATE produk SET judul=?, deskripsi=?, harga=?, id_kategori=? WHERE id_produk=?';
+    db.query(sql, [judul,deskripsi,harga,id_kategori,id_produk], (err, result) => {
+        if (err) return res.status(500).json({ error: errsqlMessage});
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Produk tidak ditemukan'});
+        }
+
+        res.json({ message: 'Produk berhasil diupdate'})
+    })
+
+})
+
+app.delete('/produk/:id_produk', (req, res) => {
+    const {id_produk} = req.params;
+    const sql = 'DELETE FROM produk WHERE id_produk =?';
+    db.query(sql, [id_produk], (err, result) => {
+        if (err) return res.status(500).json({ error: err.sqlMessage});
+
+        if (result.affectedRows == 0) {
+            return res.status(404).json({ message: 'Produk tidak ditemukan'})
+        }
+
+        res.json({ message: 'Produk berhasil dihapus'})
     })
 })
 

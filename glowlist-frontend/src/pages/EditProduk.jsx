@@ -1,83 +1,72 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
-export default function AddProduk() {
+export default function EditProduk() {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         judul: "",
         deskripsi: "",
         harga: "",
         id_kategori: "",
     });
-
     const [kategori, setKategori] = useState([]);
-
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchKategori = async () => {
-            try {
-                const res = await fetch("http://localhost:5000/kategori");
-                const data = await res.json();
+        fetch(`http://localhost:5000/produk/${id}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setFormData(data[0]); // ambil data pertama hasil query
+                setLoading(false);
+            })
+            .catch((err) => console.error(err))
+    }, [id]);
 
-                if (res.ok) {
-                    setKategori(data);
-                } else {
-                    console.error("Gagal mengambil kategori");
-                }
-            } catch (err) {
-                console.error("Error mengambil kategori:", err);
-            }
-        };
-
-        fetchKategori();
-    }, []);
+    fetch(`http://localhost:5000/kategori`)
+        .then((res) => res.json())
+        .then((data) => {
+            setKategori(data);
+        })
+        .catch((err) => console.error(err));
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value })
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            const res = await fetch("http://localhost:5000/produk", {
-                method: "POST",
-                headers: {"Content-Type": "application/json",},
-                body: JSON.stringify(formData),
-            });
-
-            if (res.ok) {
-                alert("Produk berhasil ditambahkan!");
-                navigate("/produk");
-            } else {
-                const data = await res.json();
-                alert(data.message || "Gagal menambahkan produk");
-            }
-        } catch (err) {
-            console.error("Error:", err);
-            alert("Terjadi kesalahan saat menambahkan produk");
+        const isConfirmed = window.confirm("Yakin mau menyimpan perubahan ini?");
+        if (!isConfirmed) {
+            return; //Batalkan kirim data jika pengguna memilih cancel
         }
+
+        await fetch(`http://localhost:5000/produk/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+        })
+        alert("Produk berhasil diperbarui!");
+        navigate("/produk")
     };
+
+    if (loading) {
+        return <div className="container mt-4">Loading. . .</div>
+    }
 
     return (
         <div className="container mt-4">
-            <h2 className="mb-3">Tambah Produk</h2>
-
-            <form onSubmit={handleSubmit} className="card p-4 shadow-sm">
-
+            <h2>Edit Produk</h2>
+            <form onSubmit={handleSubmit} className="mt-4">
                 <div className="mb-3">
-                    <label className="form-label">Judul Produk</label>
+                    <label className="mb-3">Judul</label>
                     <input
                         type="text"
                         name="judul"
                         value={formData.judul}
                         onChange={handleChange}
                         className="form-control"
-                        placeholder="Masukkan nama produk"
-                        required
                     />
                 </div>
 
@@ -128,10 +117,10 @@ export default function AddProduk() {
                     </select>
                 </div>
 
-                <button type="submit" className="btn btn-success">
-                    Simpan
+                <button type="submit" className="btn btn-succes me-2">
+                    Simpan Perubahan
                 </button>
             </form>
         </div>
-    );
-}
+    )
+};
