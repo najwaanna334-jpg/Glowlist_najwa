@@ -28,7 +28,7 @@ export default function Produk() {
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Daftar Produk Glowlist</h2>
+                <h2>Daftar Produk Glowlist ❣️</h2>
                 <Link to="/produk/tambah" className="btn btn-primary">
                     + Tambah Produk
                 </Link>

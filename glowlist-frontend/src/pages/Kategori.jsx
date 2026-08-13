@@ -26,7 +26,7 @@ export default function Kategori(){
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Daftar Kategori Glowlist</h2>
+                <h2>Daftar Kategori Glowlist ❣️</h2>
             </div>
 
             <table className="table table-bordered table-striped">

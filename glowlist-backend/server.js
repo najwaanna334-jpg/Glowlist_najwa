@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors')
 const app = express();
+const PORT = 5000;
 const mysql = require('mysql2');
+
+app.use(cors());
+app.use(express.json());
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -17,10 +21,6 @@ db.connect(err => {
         console.log('Berhasil konek ke database Glowlist');
     }
 });
-const PORT = 5000;
-
-app.use(cors());
-app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send('Selamat Datang Di Glowlist API! ');
@@ -40,8 +40,8 @@ app.get('/produk', (req, res) => {
 });
 
 app.post('/produk', (req, res) => {
-
     const { judul, deskripsi, harga, id_kategori} = req.body;
+    
     if(!judul || !harga || !deskripsi) {
         return res.status(400).json({message: 'Judul, deskripsi dan harga wajib diisi'});
     }
