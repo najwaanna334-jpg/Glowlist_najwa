@@ -21,14 +21,16 @@ export default function EditProduk() {
                 setLoading(false);
             })
             .catch((err) => console.error(err))
-    }, [id]);
 
-    fetch(`http://localhost:5000/kategori`)
+            fetch(`http://localhost:5000/kategori`) 
         .then((res) => res.json())
         .then((data) => {
             setKategori(data);
         })
         .catch((err) => console.error(err));
+
+    }, [id]);
+
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -39,16 +41,33 @@ export default function EditProduk() {
 
         const isConfirmed = window.confirm("Yakin mau menyimpan perubahan ini?");
         if (!isConfirmed) {
-            return; //Batalkan kirim data jika pengguna memilih cancel
+            return;
+
         }
 
-        await fetch(`http://localhost:5000/produk/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        })
-        alert("Produk berhasil diperbarui!");
-        navigate("/produk")
+        try {
+            const res = await fetch(`http://localhost:5000/produk/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alert("Produk berhasil diperbarui");
+                navigate("/produk");
+            } else {
+                alert(data.message || "Gagal memperbarui produk");
+            }
+        } catch (err) {
+            console.error("Error:", err);
+            alert("Terjadi kesalahan saat memperbarui produk")
+        }
+
     };
 
     if (loading) {
@@ -117,7 +136,7 @@ export default function EditProduk() {
                     </select>
                 </div>
 
-                <button type="submit" className="btn btn-succes me-2">
+                <button type="submit" className="btn btn-success me-2">
                     Simpan Perubahan
                 </button>
             </form>

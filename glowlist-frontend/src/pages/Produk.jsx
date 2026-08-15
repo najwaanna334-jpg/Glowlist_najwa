@@ -27,6 +27,9 @@ export default function Produk() {
             try {
                 const res = await fetch(`http://localhost:5000/produk/${id}`, {
                     method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    },
                 });
                 if (res.ok) {
                     alert("Produk berhasil dihapus");
@@ -63,6 +66,7 @@ export default function Produk() {
                     <tr>
                         <th>ID</th>
                         <th>Judul</th>
+                        <th>Foto</th>
                         <th>Deskripsi</th>
                         <th>Harga</th>
                         <th>Aksi</th>
@@ -74,6 +78,7 @@ export default function Produk() {
                             <tr key={item.id_produk}>
                                 <td>{item.id_produk}</td>
                                 <td>{item.judul}</td>
+                                <td>{item.foto}</td>
                                 <td>{item.deskripsi}</td>
                                 <td>Rp{item.harga}</td>
                                 <td>

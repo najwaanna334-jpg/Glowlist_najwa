@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 const authJWT = require('./middleware');
+const path = require('path');
+const multer = require('multer');
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +27,19 @@ db.connect(err => {
         console.log('Berhasil konek ke database Glowlist');
     }
 });
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        createBrotliCompress(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * le9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    },
+});
+const upload = multer({ storage: storage});
 
 app.post('/pengguna', async (req, res) => {
     const { nama, email, password, no_hp } = req.body;
@@ -118,7 +133,7 @@ app.listen(PORT, () => {
     console.log(`Server Glowlist jalan di http://localhost:${PORT}`);
 });
 
-app.get('/produk/', (req, res) => {
+app.get('/produk', (req, res) => {
     const sql = 'SELECT * FROM produk';
 
     db.query(sql, (err, results) => {
@@ -137,7 +152,7 @@ app.get('/produk/', (req, res) => {
 
 app.get('/produk/:id_produk', (req, res) => {
     const { id_produk } = req.params;
-    const sql = 'SELECT * FROM produk';
+    const sql = 'SELECT * FROM produk WHERE id_produk = ?';
     db.query(sql, [id_produk], (err, results) => {
         if (err) return res.status(500).json({ error: err });
         res.json(results);
@@ -145,15 +160,17 @@ app.get('/produk/:id_produk', (req, res) => {
 
 });
 
-app.post('/produk', (req, res) => {
+app.post('/produk', upload.single('file'), (req, res) => {
     const { judul, deskripsi, harga, id_kategori } = req.body;
+
+    const nama_file = req.file ? req.file.filename : null
 
     if (!judul || !harga || !deskripsi) {
         return res.status(400).json({ message: 'Judul, deskripsi dan harga wajib diisi' });
     }
 
-    const sql = 'INSERT INTO produk (judul, deskripsi, harga, id_kategori, tgl_input) VALUES (?,?,?,?, NOW())';
-    db.query(sql, [judul, deskripsi, harga, id_kategori], (err, result) => {
+    const sql = 'INSERT INTO produk (judul, deskripsi, harga, nama_file, id_kategori, tgl_input) VALUES (?,?,?,?,?, NOW())';
+    db.query(sql, [judul, deskripsi, harga, nama_file, id_kategori], (err, result) => {
         if (err) return res.status(500).json({ error: err.sqlMessage });
         res.json({
             message: 'Produk berhasil ditambahkan!',
@@ -171,7 +188,7 @@ app.put('/produk/:id_produk', authJWT, (req, res) => {
     }
 
     const sql = 'UPDATE produk SET judul=?, deskripsi=?, harga=?, id_kategori=? WHERE id_produk=?';
-    db.query(sql, [judul, deskripsi, harga, id_kategori, id_produk], (err, result) => {
+    db.query(sql, [judul, foto, deskripsi, harga, id_kategori, id_produk], (err, result) => {
         if (err) return res.status(500).json({ error: errsqlMessage });
 
         if (result.affectedRows === 0) {

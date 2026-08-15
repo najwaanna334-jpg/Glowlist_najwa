@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layaout";
+import { Navigate } from "react-router-dom";
+import Layaout from "./components/Layaout";
+import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Produk from "./pages/Produk";
 import Kategori from "./pages/Kategori";
@@ -7,11 +9,30 @@ import Tentang from "./pages/Tentang";
 import AddProduk from "./pages/AddProduk";
 import EditProduk from "./pages/EditProduk";
 
+function ProtectedRoute({ children}){
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
+
 export default function App(){
   return (
     <BrowserRouter>
     <Routes>
-      <Route path="/" element={<Layout/>}>
+
+      <Route path="/login" element={<Login />}/>
+
+      <Route
+      path="/"
+      element={
+        <ProtectedRoute>
+          <Layaout />
+        </ProtectedRoute>
+      }
+      >
       <Route index element={<Home/>}/>
       <Route path="produk" element={<Produk/>}/>
       <Route path="kategori" element={<Kategori/>}/>
